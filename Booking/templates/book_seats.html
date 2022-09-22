@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block login_display %}
+    <a href="#">欢迎您 {{ username }} 先生/女士</a>
+{% endblock %}
+
+{#这部分在base.html的head部分才会先加载#}
+{% block style %}
+
+    <style>
+
+        .main {
+            margin-left: 50px;
+            margin-right: 50px;
+        }
+
+        .search_head {
+            background-color: #f1f1f1;
+            margin-top: 10px;
+            height: 30px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .search_result_by_ltime { /*背景色与网页背景色相同*/
+            background-color: #f1f1f1;
+            margin-top: 10px;
+        }
+
+        .search_result_by_price { /*背景色与网页背景色相同*/
+            background-color: #f1f1f1;
+            margin-top: 10px;
+        }
+
+        .one_line {
+            background-color: white;
+            height: 90px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .btn-warning {
+            background-color: #ffb000;
+        }
+
+        .flight_name {
+            line-height: 90px;
+            font-size: x-large;
+            font-weight: bold;
+        }
+
+
+    </style>
+{% endblock %}
+
+{% block js %}
+    <script>
+        function search_by_ltime() {
+            document.getElementById("result_by_ltime").style.display = "block";
+            document.getElementById("result_by_atime").style.display = "none";
+            document.getElementById("result_by_price").style.display = "none";
+        }
+        function search_by_atime() {
+            document.getElementById("result_by_ltime").style.display = "none";
+            document.getElementById("result_by_atime").style.display = "block";
+            document.getElementById("result_by_price").style.display = "none";
+        }
+        function search_by_price() {
+            document.getElementById("result_by_ltime").style.display = "none";
+            document.getElementById("result_by_atime").style.display = "none";
+            document.getElementById("result_by_price").style.display = "block";
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+
+    <div class="main">
+
+        <!--标题行(标明4种排序方式)-->
+        <div class="search_head" id="search_head" style="display: {{ dis_search_head }}">
+            <div class="col-sm-12">
+                <button class="col-sm-3 btn btn-primary">航班信息</button>
+                <button class="col-sm-2 btn btn-success" onclick="search_by_ltime()">起飞时间</button>
+                <button class="col-sm-2 btn btn-danger" onclick="search_by_atime()">到达时间</button>
+                <button class="col-sm-1 btn btn-info">座次排数</button>
+                <button class="col-sm-1 btn btn-info">座次列数</button>
+                <button class="col-sm-3 btn btn-warning" onclick="search_by_price()">价格</button>
+            </div>
+        </div>
+
+        <!--如果没有查找到-->
+        <div class="alert" id="search_failure"
+             style="margin-top: 20px; background-color:white;display: {{ dis_search_failure }}">
+            <h1>尊敬的旅客</h1>
+            <p style="margin-left: 50px">
+                很抱歉，当前航班已无余票或因故不再售票。请您选择其他的航班，给您带来的不便敬请谅解。
+            </p>
+        </div>
+
+        <!--按照价格排序-->
+        <div class="search_result_by_price" id="result_by_price">
+            {% for flight in usable_flights_by_price %}
+                <div class="one_line">
+                    <div class="col-sm-12">
+                        <div class="col-sm-3">
+                            <p class="flight_name">{{ flight.name }}</p> {# 单行居中 #}
+                        </div>
+                        <div class="col-sm-2">
+                            <p style="padding: 10px"> {# 多行居中 #}
+                                <span style="font-size: xx-large">{{ flight.leave_time }}</span>
+                                <br>
+                                {{ flight.leave_airport }}
+                            </p>
+                        </div>
+                        <div class="col-sm-2">
+                            <p style="padding: 10px">
+                                <span style="font-size: xx-large">{{ flight.arrive_time }}</span>
+                                <br>
+                                {{ flight.arrive_airport }}
+                            </p>
+                        </div>
+                        <div class="col-sm-1">
+                            <p style="padding: 10px">
+                                <span style="color: #248eff;font-size: xx-large">{{ flight.row }}</span>
+                                <span style="color: #0f0f0f;font-size: larger">排</span>
+                            </p>
+                        </div>
+                        <div class="col-sm-1">
+                            <p style="padding: 10px">
+                                <span style="color: #248eff;font-size: xx-large">{{ flight.column }}</span>
+                                <span style="color: #0f0f0f;font-size: larger">座</span>
+                            </p>
+                        </div>
+                        <div class="col-sm-3">
+                            <p style="padding: 22px 0;">
+                                <sup>￥</sup>
+                                <span style="color: #ff6600;font-size: xx-large;">{{ flight.price }}</span>
+                                <sub>起</sub>&nbsp;
+                                <a href="{% url 'booksystem:book_ticket' flight.id %}"
+                                   class="btn btn-sm btn-warning">订票</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!--按照起飞时间排序-->
+        <div class="search_result_by_ltime" id="result_by_ltime" style="display: none" >
+            {% for flight in usable_flights_by_ltime %}
+                <div class="one_line">
+                    <div class="col-sm-12">
+                        <div class="col-sm-3">
+                            <p class="flight_name">{{ flight.name }}</p> {# 单行居中 #}
+                        </div>
+                        <div class="col-sm-2">
+                            <p style="padding: 10px"> {# 多行居中 #}
+                                <span style="font-size: xx-large">{{ flight.leave_time }}</span>
+                                <br>
+                                {{ flight.leave_airport }}
+                            </p>
+                        </div>
+                        <div class="col-sm-2">
+                            <p style="padding: 10px">
+                                <span style="font-size: xx-large">{{ flight.arrive_time }}</span>
+                                <br>
+                                {{ flight.arrive_airport }}
+                            </p>
+                        </div>
+                        <div class="col-sm-1">
+                            <p style="padding: 10px">
+                                <span style="color: #248eff;font-size: xx-large">{{ flight.row }}</span>
+                                <span style="color: #0f0f0f;font-size: larger">排</span>
+                            </p>
+                        </div>
+                        <div class="col-sm-1">
+                            <p style="padding: 10px">
+                                <span style="color: #248eff;font-size: xx-large">{{ flight.column }}</span>
+                                <span style="color: #0f0f0f;font-size: larger">座</span>
+                            </p>
+                        </div>
+                        <div class="col-sm-3">
+                            <p style="padding: 22px 0;">
+                                <sup>￥</sup>
+                                <span style="color: #ff6600;font-size: xx-large;">{{ flight.price }}</span>
+                                <sub>起</sub>&nbsp;
+                                <a href="{% url 'booksystem:book_ticket' flight.id %}"
+                                   class="btn btn-sm btn-warning">订票</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+       <!--按照到达时间排序-->
+        <div class="search_result_by_atime" id="result_by_atime" style="display: none">
+            {% for flight in usable_flights_by_atime %}
+                <div class="one_line">
+                    <div class="col-sm-12">
+                        <div class="col-sm-3">
+                            <p class="flight_name">{{ flight.name }}</p> {# 单行居中 #}
+                        </div>
+                        <div class="col-sm-2">
+                            <p style="padding: 10px"> {# 多行居中 #}
+                                <span style="font-size: xx-large">{{ flight.leave_time }}</span>
+                                <br>
+                                {{ flight.leave_airport }}
+                            </p>
+                        </div>
+                        <div class="col-sm-2">
+                            <p style="padding: 10px">
+                                <span style="font-size: xx-large">{{ flight.arrive_time }}</span>
+                                <br>
+                                {{ flight.arrive_airport }}
+                            </p>
+                        </div>
+                        <div class="col-sm-1">
+                            <p style="padding: 10px">
+                                <span style="color: #248eff;font-size: xx-large">{{ flight.row }}</span>
+                                <span style="color: #0f0f0f;font-size: larger">排</span>
+                            </p>
+                        </div>
+                        <div class="col-sm-1">
+                            <p style="padding: 10px">
+                                <span style="color: #248eff;font-size: xx-large">{{ flight.column }}</span>
+                                <span style="color: #0f0f0f;font-size: larger">座</span>
+                            </p>
+                        </div>
+                        <div class="col-sm-3">
+                            <p style="padding: 22px 0;">
+                                <sup>￥</sup>
+                                <span style="color: #ff6600;font-size: xx-large;">{{ flight.price }}</span>
+                                <sub>起</sub>&nbsp;
+                                <a href="{% url 'booksystem:book_ticket' flight.id %}"
+                                   class="btn btn-sm btn-warning">订票</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
